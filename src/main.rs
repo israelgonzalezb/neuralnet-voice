@@ -617,9 +617,35 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         } else {
             let to_copy = target_copy_text.clone();
             let copy_result = tokio::task::spawn_blocking(move || {
-                let mut clipboard = arboard::Clipboard::new()?;
-                clipboard.set_text(to_copy)?;
-                Ok::<(), arboard::Error>(())
+                let mut last_err = None;
+                for attempt in 0..5 {
+                    if attempt > 0 {
+                        std::thread::sleep(std::time::Duration::from_millis(50));
+                    }
+                    match arboard::Clipboard::new() {
+                        Ok(mut clipboard) => match clipboard.set_text(to_copy.clone()) {
+                            Ok(()) => return Ok::<(), String>(()),
+                            Err(e) => last_err = Some(e.to_string()),
+                        },
+                        Err(e) => last_err = Some(e.to_string()),
+                    }
+                }
+                // Fallback: Windows native clip.exe
+                if let Ok(mut child) = std::process::Command::new("clip.exe")
+                    .stdin(std::process::Stdio::piped())
+                    .spawn()
+                {
+                    if let Some(mut stdin) = child.stdin.take() {
+                        use std::io::Write;
+                        if stdin.write_all(to_copy.as_bytes()).is_ok() {
+                            drop(stdin);
+                            if child.wait().map(|s| s.success()).unwrap_or(false) {
+                                return Ok::<(), String>(());
+                            }
+                        }
+                    }
+                }
+                Err(last_err.unwrap_or_else(|| "Failed to write to clipboard".to_string()))
             })
             .await;
 
