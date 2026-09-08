@@ -310,8 +310,13 @@ fn get_history_log_path() -> std::path::PathBuf {
             .join("neuralnet")
             .join("voice")
             .join("history.jsonl")
+    } else if let Ok(user_profile) = std::env::var("USERPROFILE") {
+        std::path::PathBuf::from(user_profile)
+            .join(".neuralnet")
+            .join("voice")
+            .join("history.jsonl")
     } else {
-        std::path::PathBuf::from(r"C:\Users\Israel\AppData\Local\neuralnet\voice\history.jsonl")
+        std::path::PathBuf::from("history.jsonl")
     }
 }
 
@@ -357,23 +362,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             .find(|d| d.name().unwrap_or_default().to_lowercase().contains(&needle))
             .ok_or_else(|| format!("Specified audio device substring '{override_name}' not found."))?
     } else {
-        // Preferred default: Webcam C920
-        let c920 = device_list
-            .iter()
-            .find(|d| {
-                let name = d.name().unwrap_or_default();
-                name.contains("Microphone (HD Pro Webcam C920)")
-                    || name.contains("HD Pro Webcam C920")
-                    || name.contains("C920")
-            })
-            .cloned();
-
-        match c920 {
-            Some(d) => d,
-            None => host
-                .default_input_device()
-                .ok_or_else(|| "No default WASAPI audio input device available.".to_string())?,
-        }
+        host.default_input_device()
+            .ok_or_else(|| "No default WASAPI audio input device available.".to_string())?
     };
 
     let dev_name = selected_device.name().unwrap_or_else(|_| "Unknown Device".to_string());

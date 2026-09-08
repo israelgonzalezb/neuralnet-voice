@@ -1,21 +1,22 @@
 {
   "custom_vocabulary": [
-    "Exarch",
-    "Lucifer",
-    "Lilith",
-    "Eidolon",
-    "PRISMA",
-    "Silas Vane",
-    "Zero-Day",
+    "Rust",
     "Nushell",
     "Synthalux",
-    "DiNCo",
-    "Poetiq",
-    "Veo",
-    "BRDF",
-    "ClipRip",
     "WASAPI",
     "JSONL",
-    "SDF"
+    "SDF",
+    "BRDF",
+    "PRISMA",
+    "Gemini",
+    "LLM",
+    "API",
+    "CLI",
+    "ONNX",
+    "CUDA",
+    "Zero-Day",
+    "Exarch",
+    "Lucifer",
+    "Eidolon"
   ]
 }
